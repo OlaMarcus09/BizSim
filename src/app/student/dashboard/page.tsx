@@ -1,14 +1,8 @@
-import { BarChart3 } from "lucide-react";
-import { StudentRoutePlaceholder } from "@/features/student/shell";
+import { BusinessDashboardScreen } from "@/features/student/business/business-dashboard-screen";
+import { unavailableBusinessState } from "@/features/student/business/data/unavailable-business-state";
 
 export const metadata = { title: "Business Dashboard" };
 
 export default function BusinessDashboardPage() {
-  return (
-    <StudentRoutePlaceholder
-      title="Main Business Dashboard"
-      description="Business performance information will appear here once its product pass is complete."
-      icon={BarChart3}
-    />
-  );
+  return <BusinessDashboardScreen state={unavailableBusinessState} />;
 }

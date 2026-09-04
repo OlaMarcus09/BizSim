@@ -1,5 +1,5 @@
-import { AppShell } from "@/components/layout";
+import { StudentShell } from "@/features/student/shell";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell experience="student">{children}</AppShell>;
+  return <StudentShell>{children}</StudentShell>;
 }

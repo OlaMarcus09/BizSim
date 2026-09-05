@@ -6,6 +6,7 @@ import {
   Home,
   LogIn,
   Newspaper,
+  Tags,
   Trophy,
 } from "lucide-react";
 
@@ -29,4 +30,10 @@ export const joinSimulationNavigation: StudentNavigationItem = {
   label: "Join Simulation",
   href: "/student/join",
   icon: LogIn,
+};
+
+export const pricingNavigation: StudentNavigationItem = {
+  label: "Pricing Decision",
+  href: "/student/pricing",
+  icon: Tags,
 };

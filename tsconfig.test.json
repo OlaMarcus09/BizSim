@@ -9,5 +9,5 @@
     "types": ["node"],
     "ignoreDeprecations": "6.0"
   },
-  "include": ["src/domain/simulation/*.ts"]
+  "include": ["src/domain/simulation/*.ts", "src/features/student/decisions/decision-session.test.ts"]
 }

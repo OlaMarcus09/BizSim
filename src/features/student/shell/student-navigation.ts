@@ -6,6 +6,7 @@ import {
   Home,
   LogIn,
   Newspaper,
+  Megaphone,
   Tags,
   Trophy,
 } from "lucide-react";
@@ -36,4 +37,10 @@ export const pricingNavigation: StudentNavigationItem = {
   label: "Pricing Decision",
   href: "/student/pricing",
   icon: Tags,
+};
+
+export const marketingNavigation: StudentNavigationItem = {
+  label: "Marketing Decision",
+  href: "/student/marketing",
+  icon: Megaphone,
 };

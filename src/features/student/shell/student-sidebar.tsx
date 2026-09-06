@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronRight, CircleHelp, Settings, X } from "lucide-react";
 import {
   joinSimulationNavigation,
+  marketingNavigation,
   pricingNavigation,
   studentNavigation,
   type StudentNavigationItem,
@@ -100,6 +101,11 @@ export function StudentSidebar({ mobileOpen, onClose }: StudentSidebarProps) {
 
           <StudentNavLink item={pricingNavigation} pathname={pathname} onNavigate={onClose} />
 
+          <StudentNavLink
+            item={marketingNavigation}
+            pathname={pathname}
+            onNavigate={onClose}
+          />
           <StudentNavLink
             item={joinSimulationNavigation}
             pathname={pathname}

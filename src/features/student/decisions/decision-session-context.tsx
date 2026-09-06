@@ -2,10 +2,11 @@
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { initialState, type CompanySimulationState } from "@/domain/simulation";
-import { setDecisionPrice, type DecisionSession, type PartialDecisions } from "./decision-session";
+import { setDecisionMarketing, setDecisionPrice, type DecisionSession, type PartialDecisions } from "./decision-session";
 
 type DecisionSessionContextValue = DecisionSession & {
   setPrice: (price: number) => void;
+  setMarketing: (marketing: number) => void;
   setDecision: <K extends keyof PartialDecisions>(key: K, value: NonNullable<PartialDecisions[K]>) => void;
 };
 
@@ -18,6 +19,7 @@ export function DecisionSessionProvider({ children }: { children: ReactNode }) {
     companyState,
     decisions,
     setPrice: (price) => setDecisions((current) => setDecisionPrice({ companyState, decisions: current }, price).decisions),
+    setMarketing: (marketing) => setDecisions((current) => setDecisionMarketing({ companyState, decisions: current }, marketing).decisions),
     setDecision: (key, value) => setDecisions((current) => ({ ...current, [key]: value })),
   }), [companyState, decisions]);
 

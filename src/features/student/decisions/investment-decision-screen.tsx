@@ -163,7 +163,7 @@ export function InvestmentDecisionScreen() {
 
       <nav aria-label="Decision navigation" className="mt-6 flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
         <Link href="/student/workforce" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-border bg-white px-5 font-semibold text-ink transition-colors hover:bg-slate-50"><ArrowLeft size={18} />Back to Workforce</Link>
-        <button type="button" disabled className="inline-flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-lg border border-border bg-slate-100 px-5 font-semibold text-muted" title="Decision Review is not available yet">Review coming next<ArrowRight size={18} /></button>
+        <Link href="/student/review" className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-brand-600 bg-brand-600 px-5 font-semibold text-white transition-colors hover:bg-brand-700">Continue to Review<ArrowRight size={18} /></Link>
       </nav>
     </StudentPage>
   );

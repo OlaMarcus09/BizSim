@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   Building2,
+  ClipboardCheck,
   History,
   Home,
   Landmark,
@@ -64,4 +65,10 @@ export const investmentNavigation: StudentNavigationItem = {
   label: "Investment Decision",
   href: "/student/investment",
   icon: Landmark,
+};
+
+export const reviewNavigation: StudentNavigationItem = {
+  label: "Decision Review",
+  href: "/student/review",
+  icon: ClipboardCheck,
 };

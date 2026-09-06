@@ -17,12 +17,15 @@ import {
   inventoryPurchaseLimit,
   investmentDecisionError,
   marketingDecisionError,
+  missingDecisionFields,
   purchaseQuantityError,
+  reviewDecisions,
   setDecisionMarketing,
   setDecisionEmployeesTarget,
   setDecisionInvestment,
   setDecisionPrice,
   setDecisionPurchaseQuantity,
+  toCompleteDecisions,
   workforceTargetError,
   type DecisionSession,
 } from "./decision-session";
@@ -273,4 +276,98 @@ test("Investment staging neither resolves nor submits the round", () => {
   assert.equal(updated.companyState, companyState);
   assert.equal(updated.companyState.r, 1);
   assert.equal(updated.decisions.investment, 0);
+});
+
+const completeStrategy = {
+  price: 5200,
+  marketing: 900000,
+  purchase_qty: 800,
+  employees_target: 24,
+  investment: 700000,
+};
+
+test("detects incomplete and complete five-field staged strategies without defaults", () => {
+  const incomplete = { price: 5200, marketing: 0, purchase_qty: 0, employees_target: 20 };
+  const incompleteReview = reviewDecisions(incomplete, 2500);
+
+  assert.deepEqual(missingDecisionFields(incomplete), ["investment"]);
+  assert.equal(toCompleteDecisions(incomplete), undefined);
+  assert.equal(incompleteReview.valid, false);
+  assert.equal(incompleteReview.decisions, undefined);
+  assert.deepEqual(incompleteReview.missingFields, ["investment"]);
+  assert.deepEqual(missingDecisionFields(completeStrategy), []);
+  assert.deepEqual(toCompleteDecisions(completeStrategy), completeStrategy);
+});
+
+test("preserves explicit zero values when safely creating complete Decisions", () => {
+  const minimumStrategy = {
+    price: 3500,
+    marketing: 0,
+    purchase_qty: 0,
+    employees_target: 10,
+    investment: 0,
+  };
+
+  assert.deepEqual(toCompleteDecisions(minimumStrategy), minimumStrategy);
+});
+
+test("validates a complete staged strategy without resolving the round", () => {
+  const companyState = initialState();
+  const decisions = { ...completeStrategy };
+  const review = reviewDecisions(decisions, 2500);
+
+  assert.equal(review.valid, true);
+  assert.deepEqual(review.validationErrors, []);
+  assert.deepEqual(review.decisions, decisions);
+  assert.equal(companyState.r, 1);
+});
+
+test("review catches invalid Pricing and Marketing through domain validation", () => {
+  const invalidPrice = reviewDecisions({ ...completeStrategy, price: 5250 }, 2500);
+  const invalidMarketing = reviewDecisions({ ...completeStrategy, marketing: 150000 }, 2500);
+
+  assert.equal(invalidPrice.valid, false);
+  assert.equal(invalidPrice.validationErrors[0]?.field, "price");
+  assert.equal(invalidMarketing.valid, false);
+  assert.equal(invalidMarketing.validationErrors[0]?.field, "marketing");
+});
+
+test("review catches Inventory increment and current supply-cap violations", () => {
+  const invalidIncrement = reviewDecisions({ ...completeStrategy, purchase_qty: 825 }, 2500);
+  const aboveSupplyCap = reviewDecisions({ ...completeStrategy, purchase_qty: 1250 }, 1200);
+
+  assert.equal(invalidIncrement.validationErrors[0]?.field, "purchase_qty");
+  assert.equal(aboveSupplyCap.validationErrors[0]?.field, "purchase_qty");
+});
+
+test("review catches invalid Workforce and Investment through domain validation", () => {
+  const invalidWorkforce = reviewDecisions({ ...completeStrategy, employees_target: 41 }, 2500);
+  const invalidInvestment = reviewDecisions({ ...completeStrategy, investment: 150000 }, 2500);
+
+  assert.equal(invalidWorkforce.validationErrors[0]?.field, "employees_target");
+  assert.equal(invalidInvestment.validationErrors[0]?.field, "investment");
+});
+
+test("editing one decision preserves the other four and keeps a complete strategy", () => {
+  const session: DecisionSession = { companyState: initialState(), decisions: completeStrategy };
+  const updated = setDecisionPrice(session, 5600);
+  const review = reviewDecisions(updated.decisions, 2500);
+
+  assert.deepEqual(updated.decisions, { ...completeStrategy, price: 5600 });
+  assert.equal(review.valid, true);
+  assert.deepEqual(review.missingFields, []);
+});
+
+test("review is pure: it does not mutate company state, submit, or clear staged decisions", () => {
+  const companyState = initialState();
+  const session: DecisionSession = { companyState, decisions: { ...completeStrategy } };
+  const stateSnapshot = structuredClone(companyState);
+  const decisionSnapshot = structuredClone(session.decisions);
+
+  reviewDecisions(session.decisions, 2500);
+
+  assert.deepEqual(session.companyState, stateSnapshot);
+  assert.deepEqual(session.decisions, decisionSnapshot);
+  assert.equal(session.companyState.r, 1);
+  assert.equal(Object.keys(session.decisions).length, 5);
 });

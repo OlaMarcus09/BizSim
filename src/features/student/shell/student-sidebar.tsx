@@ -9,6 +9,7 @@ import {
   joinSimulationNavigation,
   marketingNavigation,
   pricingNavigation,
+  reviewNavigation,
   studentNavigation,
   type StudentNavigationItem,
   workforceNavigation,
@@ -124,6 +125,7 @@ export function StudentSidebar({ mobileOpen, onClose }: StudentSidebarProps) {
             pathname={pathname}
             onNavigate={onClose}
           />
+          <StudentNavLink item={reviewNavigation} pathname={pathname} onNavigate={onClose} />
           <StudentNavLink
             item={joinSimulationNavigation}
             pathname={pathname}

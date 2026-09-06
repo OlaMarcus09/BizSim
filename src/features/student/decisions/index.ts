@@ -5,3 +5,4 @@ export * from "./marketing-decision-screen";
 export * from "./inventory-decision-screen";
 export * from "./workforce-decision-screen";
 export * from "./investment-decision-screen";
+export * from "./decision-review-screen";

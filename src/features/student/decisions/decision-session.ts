@@ -1,10 +1,68 @@
-import type { CompanySimulationState, Decisions } from "@/domain/simulation";
+import {
+  validateDecisions,
+  type CompanySimulationState,
+  type Decisions,
+  type ValidationError,
+} from "../../../domain/simulation";
 
 export type PartialDecisions = Partial<Decisions>;
 
 export interface DecisionSession {
   companyState: CompanySimulationState;
   decisions: PartialDecisions;
+}
+
+export const DECISION_FIELDS = [
+  "price",
+  "marketing",
+  "purchase_qty",
+  "employees_target",
+  "investment",
+] as const satisfies readonly (keyof Decisions)[];
+
+export type DecisionField = (typeof DECISION_FIELDS)[number];
+
+export type DecisionReview = {
+  decisions?: Decisions;
+  missingFields: DecisionField[];
+  validationErrors: ValidationError[];
+  valid: boolean;
+};
+
+export function missingDecisionFields(decisions: PartialDecisions): DecisionField[] {
+  return DECISION_FIELDS.filter((field) => decisions[field] === undefined);
+}
+
+export function toCompleteDecisions(decisions: PartialDecisions): Decisions | undefined {
+  const { price, marketing, purchase_qty, employees_target, investment } = decisions;
+  if (
+    price === undefined ||
+    marketing === undefined ||
+    purchase_qty === undefined ||
+    employees_target === undefined ||
+    investment === undefined
+  ) return undefined;
+
+  return {
+    price,
+    marketing,
+    purchase_qty,
+    employees_target,
+    investment,
+  };
+}
+
+export function reviewDecisions(decisions: PartialDecisions, supplyCap: number): DecisionReview {
+  const missingFields = missingDecisionFields(decisions);
+  const complete = toCompleteDecisions(decisions);
+  const validationErrors = complete ? validateDecisions(complete, supplyCap) : [];
+
+  return {
+    decisions: complete,
+    missingFields,
+    validationErrors,
+    valid: Boolean(complete) && validationErrors.length === 0,
+  };
 }
 
 export function setDecisionPrice(session: DecisionSession, price: number): DecisionSession {

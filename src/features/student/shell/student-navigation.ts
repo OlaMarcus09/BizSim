@@ -4,6 +4,7 @@ import {
   Building2,
   History,
   Home,
+  Landmark,
   PackageOpen,
   UsersRound,
   LogIn,
@@ -57,4 +58,10 @@ export const workforceNavigation: StudentNavigationItem = {
   label: "Workforce Decision",
   href: "/student/workforce",
   icon: UsersRound,
+};
+
+export const investmentNavigation: StudentNavigationItem = {
+  label: "Investment Decision",
+  href: "/student/investment",
+  icon: Landmark,
 };

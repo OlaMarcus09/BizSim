@@ -79,3 +79,23 @@ export function setDecisionEmployeesTarget(session: DecisionSession, target: num
   if (error) throw new RangeError(error);
   return { ...session, decisions: { ...session.decisions, employees_target: target } };
 }
+
+export const INVESTMENT_MIN = 0;
+export const INVESTMENT_MAX = 2_000_000;
+export const INVESTMENT_STEP = 100_000;
+
+export function investmentDecisionError(investment: number): string | undefined {
+  if (!Number.isFinite(investment)) return "Enter an investment amount.";
+  if (investment < INVESTMENT_MIN || investment > INVESTMENT_MAX) {
+    return "Investment must be between ₦0 and ₦2,000,000.";
+  }
+  if (investment % INVESTMENT_STEP !== 0) {
+    return "Investment must use ₦100,000 increments.";
+  }
+}
+
+export function setDecisionInvestment(session: DecisionSession, investment: number): DecisionSession {
+  const error = investmentDecisionError(investment);
+  if (error) throw new RangeError(error);
+  return { ...session, decisions: { ...session.decisions, investment } };
+}

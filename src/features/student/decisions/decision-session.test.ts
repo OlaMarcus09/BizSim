@@ -5,6 +5,9 @@ import {
   MARKETING_MAX,
   MARKETING_MIN,
   MARKETING_STEP,
+  INVESTMENT_MAX,
+  INVESTMENT_MIN,
+  INVESTMENT_STEP,
   PURCHASE_QUANTITY_MAX,
   PURCHASE_QUANTITY_MIN,
   PURCHASE_QUANTITY_STEP,
@@ -12,10 +15,12 @@ import {
   WORKFORCE_TARGET_MIN,
   WORKFORCE_TARGET_STEP,
   inventoryPurchaseLimit,
+  investmentDecisionError,
   marketingDecisionError,
   purchaseQuantityError,
   setDecisionMarketing,
   setDecisionEmployeesTarget,
+  setDecisionInvestment,
   setDecisionPrice,
   setDecisionPurchaseQuantity,
   workforceTargetError,
@@ -197,4 +202,75 @@ test("Workforce staging does not resolve the round or populate Investment", () =
   assert.equal(updated.companyState, companyState);
   assert.equal(updated.companyState.r, 1);
   assert.equal(updated.decisions.investment, undefined);
+});
+
+test("stages Investment while preserving all four previous decisions", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800, employees_target: 24 },
+  };
+  const updated = setDecisionInvestment(session, 700000);
+
+  assert.deepEqual(updated.decisions, {
+    price: 5200,
+    marketing: 900000,
+    purchase_qty: 800,
+    employees_target: 24,
+    investment: 700000,
+  });
+});
+
+test("accepts Investment boundaries and ₦100,000 increments", () => {
+  assert.equal(investmentDecisionError(INVESTMENT_MIN), undefined);
+  assert.equal(investmentDecisionError(INVESTMENT_STEP), undefined);
+  assert.equal(investmentDecisionError(INVESTMENT_MAX), undefined);
+});
+
+test("rejects invalid Investment without corrupting the staged strategy", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800, employees_target: 24 },
+  };
+
+  assert.match(investmentDecisionError(-INVESTMENT_STEP) ?? "", /between/);
+  assert.match(investmentDecisionError(INVESTMENT_MAX + INVESTMENT_STEP) ?? "", /between/);
+  assert.match(investmentDecisionError(150000) ?? "", /increments/);
+  assert.throws(() => setDecisionInvestment(session, -INVESTMENT_STEP), RangeError);
+  assert.throws(() => setDecisionInvestment(session, 150000), RangeError);
+  assert.deepEqual(session.decisions, {
+    price: 5200,
+    marketing: 900000,
+    purchase_qty: 800,
+    employees_target: 24,
+  });
+});
+
+test("repeated Investment staging replaces only investment", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800, employees_target: 24 },
+  };
+  const first = setDecisionInvestment(session, 500000);
+  const updated = setDecisionInvestment(first, 1200000);
+
+  assert.deepEqual(updated.decisions, {
+    price: 5200,
+    marketing: 900000,
+    purchase_qty: 800,
+    employees_target: 24,
+    investment: 1200000,
+  });
+});
+
+test("Investment staging neither resolves nor submits the round", () => {
+  const companyState = initialState();
+  const session: DecisionSession = {
+    companyState,
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800, employees_target: 24 },
+  };
+  const updated = setDecisionInvestment(session, 0);
+
+  assert.equal(updated.companyState, companyState);
+  assert.equal(updated.companyState.r, 1);
+  assert.equal(updated.decisions.investment, 0);
 });

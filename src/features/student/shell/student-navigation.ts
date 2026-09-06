@@ -4,6 +4,7 @@ import {
   Building2,
   History,
   Home,
+  PackageOpen,
   LogIn,
   Newspaper,
   Megaphone,
@@ -43,4 +44,10 @@ export const marketingNavigation: StudentNavigationItem = {
   label: "Marketing Decision",
   href: "/student/marketing",
   icon: Megaphone,
+};
+
+export const inventoryNavigation: StudentNavigationItem = {
+  label: "Inventory Decision",
+  href: "/student/inventory",
+  icon: PackageOpen,
 };

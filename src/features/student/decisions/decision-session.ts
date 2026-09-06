@@ -30,3 +30,32 @@ export function setDecisionMarketing(session: DecisionSession, marketing: number
   if (error) throw new RangeError(error);
   return { ...session, decisions: { ...session.decisions, marketing } };
 }
+
+export const PURCHASE_QUANTITY_MIN = 0;
+export const PURCHASE_QUANTITY_MAX = 2_500;
+export const PURCHASE_QUANTITY_STEP = 50;
+
+export function inventoryPurchaseLimit(supplyCap?: number): number {
+  return Math.min(PURCHASE_QUANTITY_MAX, supplyCap ?? PURCHASE_QUANTITY_MAX);
+}
+
+export function purchaseQuantityError(quantity: number, supplyCap?: number): string | undefined {
+  const limit = inventoryPurchaseLimit(supplyCap);
+  if (!Number.isFinite(quantity)) return "Enter a purchase quantity.";
+  if (quantity < PURCHASE_QUANTITY_MIN || quantity > limit) {
+    return `Purchase quantity must be between 0 and ${limit.toLocaleString()} units.`;
+  }
+  if (quantity % PURCHASE_QUANTITY_STEP !== 0) {
+    return "Purchase quantity must use 50-unit increments.";
+  }
+}
+
+export function setDecisionPurchaseQuantity(
+  session: DecisionSession,
+  quantity: number,
+  supplyCap?: number,
+): DecisionSession {
+  const error = purchaseQuantityError(quantity, supplyCap);
+  if (error) throw new RangeError(error);
+  return { ...session, decisions: { ...session.decisions, purchase_qty: quantity } };
+}

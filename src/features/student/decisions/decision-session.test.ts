@@ -5,9 +5,15 @@ import {
   MARKETING_MAX,
   MARKETING_MIN,
   MARKETING_STEP,
+  PURCHASE_QUANTITY_MAX,
+  PURCHASE_QUANTITY_MIN,
+  PURCHASE_QUANTITY_STEP,
+  inventoryPurchaseLimit,
   marketingDecisionError,
+  purchaseQuantityError,
   setDecisionMarketing,
   setDecisionPrice,
+  setDecisionPurchaseQuantity,
   type DecisionSession,
 } from "./decision-session";
 
@@ -65,4 +71,60 @@ test("later valid Marketing updates replace only the staged Marketing amount", (
   const updated = setDecisionMarketing(first, 1200000);
 
   assert.deepEqual(updated.decisions, { price: 5200, marketing: 1200000 });
+});
+
+test("stages a valid Inventory purchase while preserving Pricing and Marketing", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000 },
+  };
+  const updated = setDecisionPurchaseQuantity(session, 800, 2500);
+
+  assert.equal(updated.decisions.employees_target, undefined);
+  assert.equal(updated.decisions.investment, undefined);
+  assert.deepEqual(updated.decisions, { price: 5200, marketing: 900000, purchase_qty: 800 });
+});
+
+test("accepts Inventory minimum and effective supply-cap boundaries", () => {
+  assert.equal(purchaseQuantityError(PURCHASE_QUANTITY_MIN, 1200), undefined);
+  assert.equal(purchaseQuantityError(1200, 1200), undefined);
+  assert.equal(purchaseQuantityError(PURCHASE_QUANTITY_MAX, 3000), undefined);
+  assert.equal(inventoryPurchaseLimit(1200), 1200);
+  assert.equal(inventoryPurchaseLimit(3000), PURCHASE_QUANTITY_MAX);
+});
+
+test("rejects Inventory quantities outside the supply cap or 50-unit increment", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000 },
+  };
+
+  assert.match(purchaseQuantityError(-PURCHASE_QUANTITY_STEP, 2500) ?? "", /between/);
+  assert.match(purchaseQuantityError(1250, 1200) ?? "", /between/);
+  assert.match(purchaseQuantityError(125, 2500) ?? "", /50-unit/);
+  assert.throws(() => setDecisionPurchaseQuantity(session, 2550, 2500), RangeError);
+  assert.throws(() => setDecisionPurchaseQuantity(session, 125, 2500), RangeError);
+  assert.deepEqual(session.decisions, { price: 5200, marketing: 900000 });
+});
+
+test("repeated Inventory staging replaces only purchase_qty", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000 },
+  };
+  const first = setDecisionPurchaseQuantity(session, 500, 2500);
+  const updated = setDecisionPurchaseQuantity(first, 1500, 2500);
+
+  assert.deepEqual(updated.decisions, { price: 5200, marketing: 900000, purchase_qty: 1500 });
+});
+
+test("Inventory staging does not resolve the round or mutate company state", () => {
+  const companyState = initialState();
+  const session: DecisionSession = { companyState, decisions: { price: 5200, marketing: 900000 } };
+  const updated = setDecisionPurchaseQuantity(session, 1000, 2500);
+
+  assert.equal(updated.companyState, companyState);
+  assert.equal(updated.companyState.r, 1);
+  assert.equal(updated.decisions.employees_target, undefined);
+  assert.equal(updated.decisions.investment, undefined);
 });

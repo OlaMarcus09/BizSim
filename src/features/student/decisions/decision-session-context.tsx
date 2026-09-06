@@ -4,6 +4,7 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 import { initialState, type CompanySimulationState } from "@/domain/simulation";
 import {
   setDecisionMarketing,
+  setDecisionEmployeesTarget,
   setDecisionPrice,
   setDecisionPurchaseQuantity,
   type DecisionSession,
@@ -14,6 +15,7 @@ type DecisionSessionContextValue = DecisionSession & {
   setPrice: (price: number) => void;
   setMarketing: (marketing: number) => void;
   setPurchaseQuantity: (quantity: number, supplyCap?: number) => void;
+  setEmployeesTarget: (target: number) => void;
   setDecision: <K extends keyof PartialDecisions>(key: K, value: NonNullable<PartialDecisions[K]>) => void;
 };
 
@@ -28,6 +30,7 @@ export function DecisionSessionProvider({ children }: { children: ReactNode }) {
     setPrice: (price) => setDecisions((current) => setDecisionPrice({ companyState, decisions: current }, price).decisions),
     setMarketing: (marketing) => setDecisions((current) => setDecisionMarketing({ companyState, decisions: current }, marketing).decisions),
     setPurchaseQuantity: (quantity, supplyCap) => setDecisions((current) => setDecisionPurchaseQuantity({ companyState, decisions: current }, quantity, supplyCap).decisions),
+    setEmployeesTarget: (target) => setDecisions((current) => setDecisionEmployeesTarget({ companyState, decisions: current }, target).decisions),
     setDecision: (key, value) => setDecisions((current) => ({ ...current, [key]: value })),
   }), [companyState, decisions]);
 

@@ -59,3 +59,23 @@ export function setDecisionPurchaseQuantity(
   if (error) throw new RangeError(error);
   return { ...session, decisions: { ...session.decisions, purchase_qty: quantity } };
 }
+
+export const WORKFORCE_TARGET_MIN = 10;
+export const WORKFORCE_TARGET_MAX = 40;
+export const WORKFORCE_TARGET_STEP = 1;
+
+export function workforceTargetError(target: number): string | undefined {
+  if (!Number.isFinite(target)) return "Enter a target workforce.";
+  if (target < WORKFORCE_TARGET_MIN || target > WORKFORCE_TARGET_MAX) {
+    return "Target workforce must be between 10 and 40 employees.";
+  }
+  if (!Number.isInteger(target)) {
+    return "Target workforce must use whole employees.";
+  }
+}
+
+export function setDecisionEmployeesTarget(session: DecisionSession, target: number): DecisionSession {
+  const error = workforceTargetError(target);
+  if (error) throw new RangeError(error);
+  return { ...session, decisions: { ...session.decisions, employees_target: target } };
+}

@@ -5,6 +5,7 @@ import {
   History,
   Home,
   PackageOpen,
+  UsersRound,
   LogIn,
   Newspaper,
   Megaphone,
@@ -50,4 +51,10 @@ export const inventoryNavigation: StudentNavigationItem = {
   label: "Inventory Decision",
   href: "/student/inventory",
   icon: PackageOpen,
+};
+
+export const workforceNavigation: StudentNavigationItem = {
+  label: "Workforce Decision",
+  href: "/student/workforce",
+  icon: UsersRound,
 };

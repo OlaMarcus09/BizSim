@@ -8,12 +8,17 @@ import {
   PURCHASE_QUANTITY_MAX,
   PURCHASE_QUANTITY_MIN,
   PURCHASE_QUANTITY_STEP,
+  WORKFORCE_TARGET_MAX,
+  WORKFORCE_TARGET_MIN,
+  WORKFORCE_TARGET_STEP,
   inventoryPurchaseLimit,
   marketingDecisionError,
   purchaseQuantityError,
   setDecisionMarketing,
+  setDecisionEmployeesTarget,
   setDecisionPrice,
   setDecisionPurchaseQuantity,
+  workforceTargetError,
   type DecisionSession,
 } from "./decision-session";
 
@@ -126,5 +131,70 @@ test("Inventory staging does not resolve the round or mutate company state", () 
   assert.equal(updated.companyState, companyState);
   assert.equal(updated.companyState.r, 1);
   assert.equal(updated.decisions.employees_target, undefined);
+  assert.equal(updated.decisions.investment, undefined);
+});
+
+test("stages a valid Workforce target while preserving prior decisions", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800 },
+  };
+  const updated = setDecisionEmployeesTarget(session, 24);
+
+  assert.equal(updated.decisions.investment, undefined);
+  assert.deepEqual(updated.decisions, {
+    price: 5200,
+    marketing: 900000,
+    purchase_qty: 800,
+    employees_target: 24,
+  });
+});
+
+test("accepts Workforce minimum, maximum, and whole-employee increments", () => {
+  assert.equal(workforceTargetError(WORKFORCE_TARGET_MIN), undefined);
+  assert.equal(workforceTargetError(WORKFORCE_TARGET_MIN + WORKFORCE_TARGET_STEP), undefined);
+  assert.equal(workforceTargetError(WORKFORCE_TARGET_MAX), undefined);
+});
+
+test("rejects out-of-range and fractional Workforce targets without corrupting staged state", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800 },
+  };
+
+  assert.match(workforceTargetError(WORKFORCE_TARGET_MIN - 1) ?? "", /between/);
+  assert.match(workforceTargetError(WORKFORCE_TARGET_MAX + 1) ?? "", /between/);
+  assert.match(workforceTargetError(20.5) ?? "", /whole employees/);
+  assert.throws(() => setDecisionEmployeesTarget(session, 9), RangeError);
+  assert.throws(() => setDecisionEmployeesTarget(session, 20.5), RangeError);
+  assert.deepEqual(session.decisions, { price: 5200, marketing: 900000, purchase_qty: 800 });
+});
+
+test("repeated Workforce staging replaces only employees_target", () => {
+  const session: DecisionSession = {
+    companyState: initialState(),
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800 },
+  };
+  const first = setDecisionEmployeesTarget(session, 22);
+  const updated = setDecisionEmployeesTarget(first, 18);
+
+  assert.deepEqual(updated.decisions, {
+    price: 5200,
+    marketing: 900000,
+    purchase_qty: 800,
+    employees_target: 18,
+  });
+});
+
+test("Workforce staging does not resolve the round or populate Investment", () => {
+  const companyState = initialState();
+  const session: DecisionSession = {
+    companyState,
+    decisions: { price: 5200, marketing: 900000, purchase_qty: 800 },
+  };
+  const updated = setDecisionEmployeesTarget(session, 20);
+
+  assert.equal(updated.companyState, companyState);
+  assert.equal(updated.companyState.r, 1);
   assert.equal(updated.decisions.investment, undefined);
 });

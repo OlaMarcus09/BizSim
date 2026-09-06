@@ -10,6 +10,7 @@ import {
   pricingNavigation,
   studentNavigation,
   type StudentNavigationItem,
+  workforceNavigation,
 } from "./student-navigation";
 
 type StudentSidebarProps = {
@@ -109,6 +110,11 @@ export function StudentSidebar({ mobileOpen, onClose }: StudentSidebarProps) {
           />
           <StudentNavLink
             item={inventoryNavigation}
+            pathname={pathname}
+            onNavigate={onClose}
+          />
+          <StudentNavLink
+            item={workforceNavigation}
             pathname={pathname}
             onNavigate={onClose}
           />
